@@ -1,10 +1,6 @@
-package main
+package pkg
 
 import (
-	"bufio"
-	"flag"
-	"fmt"
-	"os"
 	"regexp"
 
 	"github.com/charmbracelet/lipgloss"
@@ -27,7 +23,7 @@ var (
 	CRITICAL_COMPILE, _ = regexp.Compile("(Critical|critical|CRITICAL)")
 )
 
-func match(str string, re *regexp.Regexp) string {
+func ApplyStyle(str string, re *regexp.Regexp) string {
 
 	if DEBUG_COMPILE.MatchString(str) {
 		return DEBUG_STYLE.Render(str)
@@ -51,25 +47,4 @@ func match(str string, re *regexp.Regexp) string {
 		return REGEX_STYLE.Render(str)
 	}
 	return str
-}
-
-func flags() *regexp.Regexp {
-	var pattern string
-	flag.StringVar(&pattern, "pattern", "", "regex pattern to search for")
-	flag.Parse()
-	if pattern != "" {
-		return regexp.MustCompile(pattern)
-	}
-	return nil
-}
-
-func main() {
-	scanner := bufio.NewScanner(os.Stdin)
-	pattern := flags()
-	for scanner.Scan() {
-		fmt.Println(match(scanner.Text(), pattern))
-	}
-	if err := scanner.Err(); err != nil {
-		fmt.Fprintln(os.Stderr, "reading standard input:", err)
-	}
 }
