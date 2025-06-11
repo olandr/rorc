@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"os"
 	"regexp"
@@ -10,6 +11,7 @@ import (
 )
 
 var (
+	REGEX_STYLE    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("51"))
 	DEBUG_STYLE    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("63"))
 	INFO_STYLE     = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("86"))
 	WARN_STYLE     = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("192"))
@@ -25,7 +27,7 @@ var (
 	CRITICAL_COMPILE, _ = regexp.Compile("(Critical|critical|CRITICAL)")
 )
 
-func match(str string) string {
+func match(str string, re *regexp.Regexp) string {
 
 	if DEBUG_COMPILE.MatchString(str) {
 		return DEBUG_STYLE.Render(str)
@@ -45,13 +47,27 @@ func match(str string) string {
 	if CRITICAL_COMPILE.MatchString(str) {
 		return CRITICAL_STYLE.Render(str)
 	}
+	if re != nil && re.MatchString(str) {
+		return REGEX_STYLE.Render(str)
+	}
 	return str
+}
+
+func flags() *regexp.Regexp {
+	var pattern string
+	flag.StringVar(&pattern, "pattern", "", "regex pattern to search for")
+	flag.Parse()
+	if pattern != "" {
+		return regexp.MustCompile(pattern)
+	}
+	return nil
 }
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
+	pattern := flags()
 	for scanner.Scan() {
-		fmt.Println(match(scanner.Text()))
+		fmt.Println(match(scanner.Text(), pattern))
 	}
 	if err := scanner.Err(); err != nil {
 		fmt.Fprintln(os.Stderr, "reading standard input:", err)
