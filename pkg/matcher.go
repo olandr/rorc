@@ -8,7 +8,7 @@ import (
 
 var (
 	REGEX_STYLE    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("51"))
-	DEBUG_STYLE    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("63"))
+	DEBUG_STYLE    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("105"))
 	INFO_STYLE     = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("86"))
 	WARN_STYLE     = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("192"))
 	ERROR_STYLE    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("204"))
@@ -24,7 +24,9 @@ var (
 )
 
 func ApplyStyle(str string, re *regexp.Regexp) string {
-
+	if re != nil && re.MatchString(str) {
+		return REGEX_STYLE.Render(str)
+	}
 	if DEBUG_COMPILE.MatchString(str) {
 		return DEBUG_STYLE.Render(str)
 	}
@@ -42,9 +44,6 @@ func ApplyStyle(str string, re *regexp.Regexp) string {
 	}
 	if CRITICAL_COMPILE.MatchString(str) {
 		return CRITICAL_STYLE.Render(str)
-	}
-	if re != nil && re.MatchString(str) {
-		return REGEX_STYLE.Render(str)
 	}
 	return str
 }
