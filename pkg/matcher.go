@@ -1,59 +1,88 @@
 package pkg
 
 import (
+	"log"
 	"regexp"
 
 	"github.com/charmbracelet/lipgloss"
 )
 
 var (
-	PASS_STYLE     = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("47"))
-	FAIL_STYLE     = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("160"))
-	REGEX_STYLE    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("51"))
-	DEBUG_STYLE    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("105"))
-	INFO_STYLE     = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("86"))
-	WARN_STYLE     = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("192"))
-	ERROR_STYLE    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("204"))
-	FATAL_STYLE    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("134"))
-	CRITICAL_STYLE = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("134"))
-
-	PASS_COMPILE, _     = regexp.Compile("(Pass|PASS|pass)")
-	FAIL_COMPILE, _     = regexp.Compile("(Fail|FAIL|fail)")
-	DEBUG_COMPILE, _    = regexp.Compile("(Debug|debug|DEBUG)")
-	INFO_COMPILE, _     = regexp.Compile("(Info|info|INFO)")
-	WARN_COMPILE, _     = regexp.Compile("(Warn|warn|WARN)")
-	ERROR_COMPILE, _    = regexp.Compile("(Error|error|ERROR)")
-	FATAL_COMPILE, _    = regexp.Compile("(Fatal|fatal|FATAL)")
-	CRITICAL_COMPILE, _ = regexp.Compile("(Critical|critical|CRITICAL)")
+	REGEX_STYLE = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("51"))
 )
 
-func ApplyStyle(str string, re *regexp.Regexp) string {
+type Colour struct {
+	name    string
+	pattern *regexp.Regexp
+	style   lipgloss.Style
+}
+type RorColouiser struct {
+	Patterns []Colour
+}
+
+func NewRorColuriser() RorColouiser {
+	return RorColouiser{
+		Patterns: []Colour{
+			{
+				name:    "PASS_COMPILE",
+				pattern: ignoreError("(Pass|PASS|pass)", regexp.Compile),
+				style:   lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("47")),
+			},
+			{
+				name:    "FAIL_COMPILE",
+				pattern: ignoreError("(Fail|FAIL|fail)", regexp.Compile),
+				style:   lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("160")),
+			},
+			{
+				name:    "DEBUG_COMPILE",
+				pattern: ignoreError("(Debug|debug|DEBUG)", regexp.Compile),
+				style:   lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("105")),
+			},
+			{
+				name:    "INFO_COMPILE",
+				pattern: ignoreError("(Info|info|INFO)", regexp.Compile),
+				style:   lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("86")),
+			},
+			{
+				name:    "WARN_COMPILE",
+				pattern: ignoreError("(Warn|warn|WARN)", regexp.Compile),
+				style:   lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("192")),
+			},
+			{
+				name:    "ERROR_COMPILE",
+				pattern: ignoreError("(Error|error|ERROR)", regexp.Compile),
+				style:   lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("204")),
+			},
+			{
+				name:    "FATAL_COMPILE",
+				pattern: ignoreError("(Fatal|fatal|FATAL)", regexp.Compile),
+				style:   lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("134")),
+			},
+			{
+				name:    "CRITICAL_COMPILE",
+				pattern: ignoreError("(Critical|critical|CRITICAL)", regexp.Compile),
+				style:   lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("134")),
+			},
+		},
+	}
+}
+
+func (ror *RorColouiser) ApplyStyle(str string, re *regexp.Regexp) string {
 	if re != nil && re.MatchString(str) {
 		return REGEX_STYLE.Render(str)
 	}
-	if PASS_COMPILE.MatchString(str) {
-		return PASS_STYLE.Render(str)
-	}
-	if FAIL_COMPILE.MatchString(str) {
-		return FAIL_STYLE.Render(str)
-	}
-	if DEBUG_COMPILE.MatchString(str) {
-		return DEBUG_STYLE.Render(str)
-	}
-	if INFO_COMPILE.MatchString(str) {
-		return INFO_STYLE.Render(str)
-	}
-	if WARN_COMPILE.MatchString(str) {
-		return WARN_STYLE.Render(str)
-	}
-	if ERROR_COMPILE.MatchString(str) {
-		return ERROR_STYLE.Render(str)
-	}
-	if FATAL_COMPILE.MatchString(str) {
-		return FATAL_STYLE.Render(str)
-	}
-	if CRITICAL_COMPILE.MatchString(str) {
-		return CRITICAL_STYLE.Render(str)
+	for _, colour := range ror.Patterns {
+		if colour.pattern.MatchString(str) {
+			return colour.style.Render(str)
+		}
 	}
 	return str
+}
+
+func ignoreError[X, Y any](x X, f func(X) (Y, error)) Y {
+	ret, err := f(x)
+	if err != nil {
+		log.Printf("err: %v\n", err)
+	}
+	return ret
 }
