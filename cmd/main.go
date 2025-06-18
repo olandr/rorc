@@ -23,8 +23,9 @@ func flags() *regexp.Regexp {
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	pattern := flags()
+	rorc := pkg.NewRorColuriser()
 	for scanner.Scan() {
-		fmt.Println(pkg.ApplyStyle(scanner.Text(), pattern))
+		fmt.Println(rorc.ApplyStyle(scanner.Text(), pattern))
 	}
 	if err := scanner.Err(); err != nil {
 		fmt.Fprintln(os.Stderr, "reading standard input:", err)
