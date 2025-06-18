@@ -3,12 +3,13 @@ package pkg
 import (
 	"log"
 	"regexp"
+	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 )
 
 var (
-	REGEX_STYLE = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("51"))
+	REGEX_STYLE = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("201"))
 )
 
 type Colour struct {
@@ -71,8 +72,9 @@ func (ror *RorColouiser) ApplyStyle(str string, re *regexp.Regexp) string {
 	if re != nil && re.MatchString(str) {
 		return REGEX_STYLE.Render(str)
 	}
+	lower := strings.ToLower(str)
 	for _, colour := range ror.Patterns {
-		if colour.pattern.MatchString(str) {
+		if colour.pattern.MatchString(lower) {
 			return colour.style.Render(str)
 		}
 	}
